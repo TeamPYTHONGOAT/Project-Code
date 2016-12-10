@@ -139,42 +139,43 @@ def GetArticle(url):
     #remove words which are in the top 200 words and are less than 3 charatcers long
     relevant_words = list(filter(lambda x: d.check(x) == True, text_body_words))
 
+    return " ".join(relevant_words)
 
 
- def GetSearchFrequency(search_term):
-    """
+def GetSearchFrequency(search_term):
+	"""
 	This function takes a search term as its input and returns a list of normalized scores per month since 1/1/2004.
 	Normalized score means that the month which saw the most searches becomes 100, and everything else gets scaled appropriately.
 	"""
 
-    search = search_term
-    url = ('https://www.google.com/trends/fetchComponent?hl=en-US&q={}&cid=TIMESERIES_GRAPH_0&export=5&w=500&h=300'
-            .format(search))
+	search = search_term.replace(' ', '+')
+	url = ('https://www.google.com/trends/fetchComponent?hl=en-US&q={}&cid=TIMESERIES_GRAPH_0&export=5&w=500&h=300'
+	        .format(search))
 
-    user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
+	user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
 
-    headers={'User-Agent':user_agent,}
-    request=urllib.request.Request(url,None,headers)
-    response = urllib.request.urlopen(request)
-    data = response.read()
+	headers={'User-Agent':user_agent,}
+	request=urllib.request.Request(url,None,headers)
+	response = urllib.request.urlopen(request)
+	data = response.read()
 
-    soup = BeautifulSoup(data,"lxml")
+	soup = BeautifulSoup(data,"lxml")
 
-    graph_date = str(soup.findAll("script", {"type":"text/javascript"})[3])
-    
-    json_frmt = graph_date[573:len(graph_date)-386]
+	graph_date = str(soup.findAll("script", {"type":"text/javascript"})[3])
 
-    split_data = json_frmt.split(',')
-    data_points = []
-    i=0
-        
-    for element in split_data:
-        if element.startswith('"f":'):
-            data_points.append([element, split_data[i+3]])
-        i+=1
-    
-    data_points = list(map(lambda x: [x[0][5:len(x[0])-2], int(x[1])], data_points))
-    return data_points
+	json_frmt = graph_date[573:len(graph_date)-386]
+
+	split_data = json_frmt.split(',')
+	data_points = []
+	i=0
+	    
+	for element in split_data:
+	    if element.startswith('"f":'):
+	        data_points.append([element, split_data[i+3]])
+	    i+=1
+
+	data_points = list(map(lambda x: [x[0][5:len(x[0])-2], int(x[1])], data_points))
+	return data_points
 
 
 
@@ -213,4 +214,60 @@ def GetWatsonTones(text_input):
 
 	return d
 
-    return " ".join(relevant_words)
+
+
+
+def GetStartEnd(list_obj):
+    """
+    This fucntion takes the return obect from search term frequency and transforms it.
+    The return obj is a 3 element list [st_date, end_date, frequency]
+    """
+
+
+    st_mnth = list_obj[0][0:list_obj[0].find(' ')]
+    
+    if st_mnth == 'January':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-01-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-02-01'
+    elif st_mnth == 'February':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-02-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-03-01'
+    elif st_mnth == 'March':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-03-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-04-01'
+    elif st_mnth == 'April':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-04-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-05-01'
+    elif st_mnth == 'May':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-05-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-06-01'
+    elif st_mnth == 'June':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-06-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-07-01'
+    elif st_mnth == 'July':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-07-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-08-01'
+    elif st_mnth == 'August':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-08-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-09-01'
+    elif st_mnth == 'September':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-09-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-10-01'
+    elif st_mnth == 'October':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-10-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-11-01'
+    elif st_mnth == 'November':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-11-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-12-01'
+    elif st_mnth == 'December':
+        st = list_obj[0][list_obj[0].find(' ')+1:]+'-12-01'
+        end = list_obj[0][list_obj[0].find(' ')+1:]+'-12-31'
+    else:
+        st = '9999-12-31'
+        end = '9999-12-31'
+    
+    return [st, end, list_obj[1]]
+
+
+
+
