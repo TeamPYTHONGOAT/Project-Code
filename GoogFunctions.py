@@ -180,7 +180,7 @@ def GetSearchFrequency(search_term):
 
 
 
-def convert_json(watson):
+def convert_jsonMod(watson):
     """
     This function takes a json str object and converts it to a list of list for sentiment score analysis
     """
@@ -188,9 +188,9 @@ def convert_json(watson):
 
     for i in range(3):
         for j in range(3):
-            frmt = [watson['sentences_tone'][0]['tone_categories'][i]['category_name'],
-                    watson['sentences_tone'][0]['tone_categories'][0]['tones'][j]['tone_name'],
-                    watson['sentences_tone'][0]['tone_categories'][0]['tones'][j]['score']]
+            frmt = [watson['document_tone']['tone_categories'][i]['category_name'],
+                    watson['document_tone']['tone_categories'][i]['tones'][j]['tone_name'],
+                    watson['document_tone']['tone_categories'][i]['tones'][j]['score']]
 
             ct_scores.append(frmt)
     
@@ -212,7 +212,7 @@ def GetWatsonTones(text_input):
 	#enter url to be analyze below
 	d = json.dumps(tone_analyzer.tone(text = text_input), indent=2)
 
-	return d
+	return json.loads(d)
 
 
 
