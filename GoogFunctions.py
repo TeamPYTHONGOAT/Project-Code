@@ -7,6 +7,9 @@ import urllib.request
 from bs4 import BeautifulSoup
 from urllib import parse
 import enchant
+import json
+import pandas as pd
+from watson_developer_cloud import ToneAnalyzerV3
 
 
 
@@ -135,5 +138,86 @@ def GetArticle(url):
     
     #remove words which are in the top 200 words and are less than 3 charatcers long
     relevant_words = list(filter(lambda x: d.check(x) == True, text_body_words))
+
+
+
+ def GetSearchFrequency(search_term):
+    """
+    This function takes a search term as its input and returns a list of normalized scores per month since 1/1/2004.
+    Normalized score means that the month which saw the most searches becomes 100, and everything else gets scaled appropriately.
+    """
+
+    search = search_term
+    url = ('https://www.google.com/trends/fetchComponent?hl=en-US&q={}&cid=TIMESERIES_GRAPH_0&export=5&w=500&h=300'
+           .format(search))
+
+    user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
+
+    headers={'User-Agent':user_agent,}
+    request=urllib.request.Request(url,None,headers)
+    response = urllib.request.urlopen(request)
+    data = response.read()
+
+    soup = BeautifulSoup(data,"lxml")
+
+    graph_date = str(soup.findAll("script", {"type":"text/javascript"})[3])
+
+    from pprint import pprint
+    json_frmt = graph_date[573:len(graph_date)-386]
+    json_frmt
+
+    def convert_mnth(month):
+        frmt = month[0:3]+' 01 '+month[len(month)-4:len(month)]
+        dt_frmt = datetime.date(datetime.strptime(convert_mnth('January 2004'), '%b %d %Y'))
+        return dt_frmt
+
+    split_data = json_frmt.split(',')
+
+    data_points = []
+    i=0
+
+    for element in split_data:
+        if element.startswith('"f":'):
+            data_points.append([element, split_data[i+3]])
+        i+=1
+
+    data_points = list(map(lambda x: [x[0][5:len(x[0])-2], int(x[1])], data_points))
+
+
+
+
+def convert_json(watson):
+    """
+    This function takes a json str object and converts it to a list of list for sentiment score analysis
+    """
+    ct_scores = []
+
+    for i in range(3):
+        for j in range(3):
+            frmt = [watson['sentences_tone'][0]['tone_categories'][i]['category_name'],
+                    watson['sentences_tone'][0]['tone_categories'][0]['tones'][j]['tone_name'],
+                    watson['sentences_tone'][0]['tone_categories'][0]['tones'][j]['score']]
+
+            ct_scores.append(frmt)
+    
+    return ct_scores
+
+
+
+#Watson Tone Analyzer API
+
+def GetWatsonTones(text_input):
+	"""
+	This function takes a block of text and runs it though the Watson Tone Analyzer API
+	"""
+	tone_analyzer = ToneAnalyzerV3(
+	    username= 'c409ff34-a19a-4b04-a41b-fa79174887ed',
+	    password= '6XZs2TTaCtg3',
+	    version= '2016-05-19 ')
+ 
+	#enter url to be analyze below
+	d = json.dumps(tone_analyzer.tone(text = text_input), indent=2)
+
+	return d
 
     return " ".join(relevant_words)
