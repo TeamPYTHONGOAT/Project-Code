@@ -174,7 +174,7 @@ def GetSearchFrequency(search_term):
 	        data_points.append([element, split_data[i+3]])
 	    i+=1
 
-	data_points = list(map(lambda x: [x[0][5:len(x[0])-2], int(x[1])], data_points))
+	data_points = list(map(lambda x: [x[0][5:len(x[0])-2].replace(' (partial data)',''), int(x[1])], data_points))
 	return data_points
 
 
