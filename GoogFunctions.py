@@ -180,7 +180,7 @@ def GetSearchFrequency(search_term):
 
 
 
-def convert_jsonMod(watson):
+def convert_json(watson):
     """
     This function takes a json str object and converts it to a list of list for sentiment score analysis
     """
